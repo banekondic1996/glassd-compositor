@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>labwc Shell</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: transparent;
+            overflow: hidden;
+            user-select: none;
+        }
+        
+        /* Taskbar */
+        #taskbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 48px;
+            background: rgba(30, 30, 30, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 8px;
+            box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .window-button {
+            height: 36px;
+            padding: 0 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            max-width: 220px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .window-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+        }
+        
+        .window-button.active {
+            background: rgba(59, 130, 246, 0.4);
+            border-color: rgba(59, 130, 246, 0.6);
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .window-button span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+        
+        /* Window decorations with blur and transparency */
+        .window-decoration {
+            position: fixed;
+            pointer-events: none;
+            will-change: transform;
+        }
+        
+        .titlebar {
+            height: 32px;
+            background: rgba(50, 50, 50, 0.88);
+            backdrop-filter: blur(40px) saturate(150%);
+            -webkit-backdrop-filter: blur(40px) saturate(150%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            box-shadow: 
+                0 1px 3px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            pointer-events: auto;
+            cursor: move;
+            transition: background 0.2s ease;
+        }
+        
+        .titlebar.inactive {
+            background: rgba(40, 40, 40, 0.75);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+        }
+        
+        .titlebar-buttons {
+            display: flex;
+            gap: 8px;
+            margin-right: 12px;
+        }
+        
+        /* Mac-style traffic light buttons */
+        .titlebar-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: 
+                0 1px 2px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+        
+        .titlebar-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+        
+        .titlebar:hover .titlebar-button::before {
+            opacity: 0.7;
+        }
+        
+        .titlebar-button:hover {
+            transform: scale(1.15);
+            filter: brightness(1.2);
+        }
+        
+        .titlebar-button:active {
+            transform: scale(0.95);
+            filter: brightness(0.9);
+        }
+        
+        .titlebar-button.close {
+            background: linear-gradient(135deg, #ff5f57 0%, #ff5349 100%);
+        }
+        
+        .titlebar-button.close::before {
+            content: 'Ã';
+            font-size: 9px;
+            font-weight: bold;
+            color: rgba(0, 0, 0, 0.7);
+        }
+        
+        .titlebar-button.minimize {
+            background: linear-gradient(135deg, #ffbd2e 0%, #ffaa00 100%);
+        }
+        
+        .titlebar-button.minimize::before {
+            content: 'â';
+            font-size: 10px;
+            font-weight: bold;
+            color: rgba(0, 0, 0, 0.7);
+        }
+        
+        .titlebar-button.maximize {
+            background: linear-gradient(135deg, #28ca42 0%, #24b83c 100%);
+        }
+        
+        .titlebar-button.maximize::before {
+            content: 'â¬';
+            font-size: 8px;
+            color: rgba(0, 0, 0, 0.7);
+        }
+        
+        .window-title {
+            flex: 1;
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 13px;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-align: center;
+            letter-spacing: 0.3px;
+        }
+        
+        .titlebar.inactive .window-title {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Enhanced resize borders */
+        .window-border {
+            position: absolute;
+            pointer-events: auto;
+            transition: background 0.15s;
+        }
+        
+        .window-border:hover {
+            background: rgba(59, 130, 246, 0.2);
+        }
+        
+        .window-border.top {
+            top: -4px;
+            left: 12px;
+            right: 12px;
+            height: 8px;
+            cursor: n-resize;
+        }
+        
+        .window-border.bottom {
+            bottom: -4px;
+            left: 12px;
+            right: 12px;
+            height: 8px;
+            cursor: s-resize;
+        }
+        
+        .window-border.left {
+            top: 28px;
+            left: -4px;
+            bottom: -4px;
+            width: 8px;
+            cursor: w-resize;
+        }
+        
+        .window-border.right {
+            top: 28px;
+            right: -4px;
+            bottom: -4px;
+            width: 8px;
+            cursor: e-resize;
+        }
+        
+        /* Larger corner resize handles */
+        .resize-handle {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            pointer-events: auto;
+            transition: background 0.15s;
+            border-radius: 50%;
+        }
+        
+        .resize-handle:hover {
+            background: rgba(59, 130, 246, 0.3);
+        }
+        
+        .resize-handle.nw {
+            top: -4px;
+            left: -4px;
+            cursor: nw-resize;
+        }
+        
+        .resize-handle.ne {
+            top: -4px;
+            right: -4px;
+            cursor: ne-resize;
+        }
+        
+        .resize-handle.sw {
+            bottom: -4px;
+            left: -4px;
+            cursor: sw-resize;
+        }
+        
+        .resize-handle.se {
+            bottom: -4px;
+            right: -4px;
+            cursor: se-resize;
+        }
+        
+        /* Status indicators */
+        #cursor-indicator {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+            pointer-events: none;
+            z-index: 10001;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        #status {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 11px;
+            z-index: 10001;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .status-connected {
+            color: #28ca42;
+        }
+        
+        .status-disconnected {
+            color: #ff5f57;
+        }
+    </style>
+</head>
+<body>
+    <div id="status">
+        <span id="connection-status" class="status-disconnected">â Disconnected</span>
+    </div>
+    
+    <div id="cursor-indicator">
+        X: <span id="cursor-x">0</span>, Y: <span id="cursor-y">0</span>
+    </div>
+    
+    <div id="taskbar"></div>
+    <div id="decorations"></div>
+    
+    <script>
+        const LabwcClient = require('./labwc-client');
+        const client = new LabwcClient();
+        
+        // UI state
+        let activeWindowId = null;
+        let dragState = null;
+        let decorationCache = new Map();
+        
+        // Performance optimization: Use requestAnimationFrame for smooth updates
+        let rafId = null;
+        let pendingUpdates = new Set();
+        
+        function scheduleUpdate(windowId) {
+            pendingUpdates.add(windowId);
+            if (!rafId) {
+                rafId = requestAnimationFrame(processPendingUpdates);
+            }
+        }
+        
+        function processPendingUpdates() {
+            for (const windowId of pendingUpdates) {
+                const window = client.windows.get(windowId);
+                if (window) {
+                    updateWindowDecoration(window);
+                }
+            }
+            pendingUpdates.clear();
+            rafId = null;
+        }
+        
+        // Connect to compositor
+        client.connect();
+        
+        // Event handlers
+        client.on('connected', () => {
+            document.getElementById('connection-status').textContent = 'â Connected';
+            document.getElementById('connection-status').className = 'status-connected';
+        });
+        
+        client.on('disconnected', () => {
+            document.getElementById('connection-status').textContent = 'â Disconnected';
+            document.getElementById('connection-status').className = 'status-disconnected';
+            decorationCache.clear();
+        });
+        
+        client.on('cursor', ({ x, y }) => {
+            document.getElementById('cursor-x').textContent = Math.round(x);
+            document.getElementById('cursor-y').textContent = Math.round(y);
+        });
+        
+        client.on('window_list', (windows) => {
+            renderTaskbar(windows);
+            renderDecorations(windows);
+        });
+        
+        client.on('window_created', (window) => {
+            renderTaskbar(client.getWindows());
+            renderDecorations(client.getWindows());
+        });
+        
+        client.on('window_closed', (window) => {
+            decorationCache.delete(window.id);
+            renderTaskbar(client.getWindows());
+            renderDecorations(client.getWindows());
+        });
+        
+        client.on('window_moved', (window) => {
+            scheduleUpdate(window.id);
+        });
+        
+        client.on('window_focused', (window) => {
+            activeWindowId = window.id;
+            renderTaskbar(client.getWindows());
+            updateAllDecorationStates();
+        });
+        
+        client.on('window_title_changed', (window) => {
+            renderTaskbar(client.getWindows());
+            updateWindowTitle(window);
+        });
+        
+        client.on('window_state_changed', (window) => {
+            renderTaskbar(client.getWindows());
+            renderDecorations(client.getWindows());
+        });
+        
+        // Render taskbar
+        function renderTaskbar(windows) {
+            const taskbar = document.getElementById('taskbar');
+            const buttons = new Map();
+            
+            // Keep existing buttons for smooth updates
+            for (const child of taskbar.children) {
+                buttons.set(child.dataset.windowId, child);
+            }
+            
+            const fragment = document.createDocumentFragment();
+            
+            for (const win of windows) {
+                if (win.minimized) continue;
+                
+                let button = buttons.get(win.id);
+                if (!button) {
+                    button = document.createElement('div');
+                    button.className = 'window-button';
+                    button.dataset.windowId = win.id;
+                    button.onclick = () => client.focusWindow(win.id);
+                }
+                
+                button.className = 'window-button' + (win.focused ? ' active' : '');
+                button.innerHTML = `<span>${win.title || win.app_id || 'Untitled'}</span>`;
+                
+                fragment.appendChild(button);
+                buttons.delete(win.id);
+            }
+            
+            // Remove old buttons
+            for (const button of buttons.values()) {
+                button.remove();
+            }
+            
+            taskbar.innerHTML = '';
+            taskbar.appendChild(fragment);
+        }
+        
+        // Render window decorations
+        function renderDecorations(windows) {
+            const container = document.getElementById('decorations');
+            const existing = new Map();
+            
+            // Cache existing decorations
+            for (const child of container.children) {
+                existing.set(child.dataset.windowId, child);
+            }
+            
+            for (const win of windows) {
+                if (win.minimized || win.fullscreen) {
+                    const cached = existing.get(win.id);
+                    if (cached) cached.remove();
+                    existing.delete(win.id);
+                    decorationCache.delete(win.id);
+                    continue;
+                }
+                
+                let decoration = existing.get(win.id);
+                if (!decoration) {
+                    decoration = createWindowDecoration(win);
+                    container.appendChild(decoration);
+                } else {
+                    updateWindowDecoration(win);
+                }
+                
+                existing.delete(win.id);
+            }
+            
+            // Remove decorations for closed windows
+            for (const decoration of existing.values()) {
+                decoration.remove();
+            }
+        }
+        
+        function createWindowDecoration(win) {
+            const div = document.createElement('div');
+            div.className = 'window-decoration';
+            div.dataset.windowId = win.id;
+            
+            updateDecorationGeometry(div, win);
+            
+            div.innerHTML = `
+                <div class="titlebar ${win.focused ? '' : 'inactive'}">
+                    <div class="titlebar-buttons">
+                        <div class="titlebar-button close" data-action="close"></div>
+                        <div class="titlebar-button minimize" data-action="minimize"></div>
+                        <div class="titlebar-button maximize" data-action="maximize"></div>
+                    </div>
+                    <div class="window-title">${win.title || win.app_id || 'Untitled'}</div>
+                </div>
+                <div class="window-border top"></div>
+                <div class="window-border bottom"></div>
+                <div class="window-border left"></div>
+                <div class="window-border right"></div>
+                <div class="resize-handle nw"></div>
+                <div class="resize-handle ne"></div>
+                <div class="resize-handle sw"></div>
+                <div class="resize-handle se"></div>
+            `;
+            
+            // Button events
+            div.querySelector('[data-action="close"]').onclick = (e) => {
+                e.stopPropagation();
+                client.closeWindow(win.id);
+            };
+            
+            div.querySelector('[data-action="minimize"]').onclick = (e) => {
+                e.stopPropagation();
+                client.minimizeWindow(win.id);
+            };
+            
+            div.querySelector('[data-action="maximize"]').onclick = (e) => {
+                e.stopPropagation();
+                client.maximizeWindow(win.id);
+            };
+            
+            // Drag to move
+            const titlebar = div.querySelector('.titlebar');
+            titlebar.onmousedown = (e) => {
+                if (e.target.classList.contains('titlebar-button')) return;
+                
+                dragState = {
+                    windowId: win.id,
+                    startX: e.clientX,
+                    startY: e.clientY,
+                    windowX: win.x,
+                    windowY: win.y,
+                    windowWidth: win.width,
+                    windowHeight: win.height
+                };
+            };
+            
+            decorationCache.set(win.id, div);
+            return div;
+        }
+        
+        function updateDecorationGeometry(decoration, window) {
+            decoration.style.transform = `translate(${window.x}px, ${window.y - 32}px)`;
+            decoration.style.width = window.width + 'px';
+        }
+        
+        function updateWindowDecoration(window) {
+            const decoration = decorationCache.get(window.id);
+            if (decoration) {
+                updateDecorationGeometry(decoration, window);
+            }
+        }
+        
+        function updateAllDecorationStates() {
+            for (const [windowId, decoration] of decorationCache) {
+                const window = client.windows.get(windowId);
+                if (window) {
+                    const titlebar = decoration.querySelector('.titlebar');
+                    if (titlebar) {
+                        titlebar.className = 'titlebar' + (window.focused ? '' : ' inactive');
+                    }
+                }
+            }
+        }
+        
+        function updateWindowTitle(window) {
+            const decoration = decorationCache.get(window.id);
+            if (decoration) {
+                const titleEl = decoration.querySelector('.window-title');
+                if (titleEl) {
+                    titleEl.textContent = window.title || window.app_id || 'Untitled';
+                }
+            }
+        }
+        
+        // Global mouse handlers with throttling for performance
+        let lastMoveTime = 0;
+        const MOVE_THROTTLE = 8; // ~120fps
+        
+        document.addEventListener('mousemove', (e) => {
+            if (!dragState) return;
+            
+            const now = performance.now();
+            if (now - lastMoveTime < MOVE_THROTTLE) return;
+            lastMoveTime = now;
+            
+            const dx = e.clientX - dragState.startX;
+            const dy = e.clientY - dragState.startY;
+            
+            client.moveWindow(
+                dragState.windowId,
+                dragState.windowX + dx,
+                dragState.windowY + dy,
+                dragState.windowWidth,
+                dragState.windowHeight
+            );
+        });
+        
+        document.addEventListener('mouseup', () => {
+            dragState = null;
+        });
+    </script>
+</body>
+</html>

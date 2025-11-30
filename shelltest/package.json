@@ -1,0 +1,22 @@
+{
+  "name": "labwc-shell",
+  "version": "1.0.0",
+  "main": "shell.html",
+  "window": {
+    "frame": false,
+    "transparent": true,
+    "show": true,
+    "always_on_top": true,
+    "fullscreen": true,
+    "resizable": false
+  },
+  "scripts": {
+    "start": "nw ."
+  },
+  "chromium-args": "--enable-transparent-visuals --disable-gpu",
+  "dependencies": {
+    "events": "^3.3.0",
+    "net": "^1.0.2",
+    "nw": "^0.105.0-1"
+  }
+}
