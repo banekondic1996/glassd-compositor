@@ -1,11 +1,5 @@
 # labwc
 
-<h3 align="center">[<a
-href="https://labwc.github.io/">Website</a>] [<a
-href="https://github.com/labwc/labwc-scope#readme">Scope</a>] [<a
-href="https://web.libera.chat/gamja/?channels=#labwc">IRC&nbsp;Channel</a>] [<a
-href="NEWS.md">Release&nbsp;Notes</a>]</h3>
-
 - [1. Project Description](#1-project-description)
   - [1.1 What Is This?](#11-what-is-this)
   - [1.2 Why](#12-why)
