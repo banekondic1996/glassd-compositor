@@ -9,10 +9,6 @@ href="NEWS.md">Release&nbsp;Notes</a>]</h3>
 - [1. Project Description](#1-project-description)
   - [1.1 What Is This?](#11-what-is-this)
   - [1.2 Why](#12-why)
-  - [1.3 Why The Openbox Theme Specification?](#13-why-the-openbox-theme-specification)
-  - [1.4 Very High Level Scope](#14-very-high-level-scope)
-  - [1.5 Videos](#15-videos)
-  - [1.6 Screenshot](#16-screenshot)
 - [2. Build and Installation](#2-build-and-installation)
 - [3. Configuration](#3-configuration)
 - [4. Theming](#4-theming)
@@ -22,6 +18,8 @@ href="NEWS.md">Release&nbsp;Notes</a>]</h3>
 - [7. Translations](#7-translations)
 
 ## 1. Project Description
+
+This is modified Labwc compositor that exposes cursor position and can control windows via IPC
 
 ### 1.1 What Is This?
 
@@ -78,58 +76,6 @@ Finally, we think that an elegant solution to all of this does not need to feel
 square and pixelated like something out of the 1990s, but should look
 contemporary and enable cutting-edge performance.
 
-### 1.3 Why The Openbox Theme Specification?
-
-In order to avoid reinventing configuration and theme syntaxes, the [Openbox]
-3.6 specification is used. This does not mean that Labwc is an Openbox clone
-but rather that configuration files will look and feel familiar.
-
-Also, parsing GTK3+ and Qt themes for window decorations is very complicated,
-so using much simpler specs such as those used by Openbox and xfwm makes sense
-for a compositor such as Labwc, both in terms of implementation and for user
-modification.
-
-Openbox spec is somewhat of a stable standard considering how long it has
-remained unchanged for and how wide-spread its adoption is by lightweight
-distributions such as LXDE, LXQt, BunsenLabs, ArchLabs, Mabox and Raspbian. Some
-widely used themes (for example Numix and Arc) have built-in support.
-
-We could have invented a whole new syntax, but that's not where we want to
-spend our effort.
-
-### 1.4 Very High Level Scope
-
-A lot of emphasis is put on code simplicity when considering features.
-
-See [scope] for full details on implemented features.
-
-### 1.5 Videos
-
-| video link                | date        | duration
-| ------------------------- | ------------| -------
-| [0.8.3-release-video]     | 03-Mar-2025 | 2:35
-| [0.7.2-release-video]     | 24-May-2024 | 3:17
-| [0.6.0-release-video]     | 31-Oct-2022 | 2:48
-| [0.3.0-release-video]     | 05-Aug-2021 | 1:10
-| [pre-0.1.0-release-video] | 25-Feb-2021 | 3:42
-
-[0.8.3-release-video]: https://youtu.be/HGzqci_THwA
-[0.7.2-release-video]: https://youtu.be/gNIj6VU-IH8
-[0.6.0-release-video]: https://youtu.be/guBnx18EQiA
-[0.3.0-release-video]: https://youtu.be/AU_M3n_FS-E
-[pre-0.1.0-release-video]: https://youtu.be/rE1bQjSVJzg
-
-### 1.6 Screenshot
-
-The obligatory screenshot:
-
-<a href="https://labwc.github.io/img/scrot1.png">
-  <img src="https://labwc.github.io/img/scrot1-small.png">
-</a><br />
-<a href="https://labwc.github.io/obligatory-screenshot.html">
-  <small>Screenshot description</small>
-</a>
-
 ## 2. Build and Installation
 
 To build, simply run:
@@ -139,9 +85,7 @@ To build, simply run:
 
 Run-time dependencies include:
 
-- wlroots, wayland, libinput, xkbcommon
-- libxml2, cairo, pango, glib-2.0
-- libpng
+- wlroots wayland libinput xkbcommon libxml2 cairo pango glib-2.0 libpng
 - librsvg >=2.46 (optional)
 - libsfdo (optional)
 - xwayland, xcb (optional)
