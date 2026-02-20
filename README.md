@@ -9,7 +9,7 @@
 - [5. Usage](#5-usage)
   - [5.1 Gaming](#51-gaming)
 - [6. Integration](#6-integration)
-- [7. Translations](#7-translations)
+- [7. Preview](#7-preview)
 
 ## 1. Project Description
 
@@ -40,7 +40,12 @@ Labwc has no reliance on any particular Desktop Environment, Desktop Shell or
 session. Nor does it depend on any UI toolkits such as Qt or GTK.
 
 ### 1.2 Why?
+**Based on my opinion:**
+Because I needed cursor position on screen to be available,
+and I need to integrate my own shell. This is by far fastest and
+and most simple Wayland compositor, that fits my needs
 
+**Based on creators of Labwc:**
 Firstly, we believe that there is a need for a simple Wayland window-stacking
 compositor which strikes a balance between minimalism and bloat approximately
 at the level where Window Managers like Openbox reside in the X11 domain.  Most
@@ -89,7 +94,7 @@ Build dependencies include:
 - meson, ninja, gcc/clang
 - wayland-protocols
 
-Disable xwayland with `meson -Dxwayland=disabled build/`
+**Disable xwayland with `meson -Dxwayland=disabled build/`** 
 
 For OS/distribution specific details see [wiki].
 
@@ -183,49 +188,7 @@ Suggested apps to use with Labwc:
 
 See [integration] for further details.
 
-## 7. Translations
+## 7. Preview
 
-The default window bar menu can be translated on the [weblate platform](https://translate.lxqt-project.org/projects/labwc/labwc/).
+<img width="1917" height="994" alt="image" src="https://github.com/user-attachments/assets/4945c683-b8fa-4bd9-b6f7-47dc858acef6" />
 
-<a href="https://translate.lxqt-project.org/engage/labwc/?utm_source=widget">
-<img src="https://translate.lxqt-project.org/widgets/labwc/-/labwc/multi-blue.svg" alt="Translation status" />
-</a>
-
-[Wayland]: https://wayland.freedesktop.org/
-[Openbox]: https://openbox.org/help/Contents
-[wlroots]: https://gitlab.freedesktop.org/wlroots/wlroots
-[sway]: https://github.com/swaywm
-[wayland-protocols]: https://gitlab.freedesktop.org/wayland/wayland-protocols
-[wlr-protocols]: https://gitlab.freedesktop.org/wlroots/wlr-protocols
-[scope]: https://github.com/labwc/labwc-scope#readme
-[wiki]: https://github.com/labwc/labwc/wiki
-[getting-started]: https://labwc.github.io/getting-started.html
-[integration]: https://labwc.github.io/integration.html
-[metacity]: https://github.com/GNOME/metacity
-
-[rc.xml]: docs/rc.xml.all
-[menu.xml]: docs/menu.xml
-[autostart]: docs/autostart
-[shutdown]: docs/shutdown
-[environment]: docs/environment
-[themerc-override]: docs/themerc
-[themerc]: docs/themerc
-[labwc-theme(5)]: https://labwc.github.io/labwc-theme.5.html
-
-[gamescope]: https://github.com/Plagman/gamescope
-[grim]: https://github.com/emersion/grim
-[wf-recorder]: https://github.com/ammen99/wf-recorder
-[swaybg]: https://github.com/swaywm/swaybg
-[waybar]: https://github.com/Alexays/Waybar
-[lavalauncher]: https://sr.ht/~leon_plickat/LavaLauncher
-[sfwbar]: https://github.com/LBCrion/sfwbar
-[xfce4-panel]: https://gitlab.xfce.org/xfce/xfce4-panel
-[bemenu]: https://github.com/Cloudef/bemenu
-[fuzzel]: https://codeberg.org/dnkl/fuzzel
-[wofi]: https://hg.sr.ht/~scoopta/wofi
-[wlopm]: https://git.sr.ht/~leon_plickat/wlopm
-[kanshi]: https://sr.ht/~emersion/kanshi/
-[wlr-randr]: https://sr.ht/~emersion/wlr-randr/
-[swaylock]: https://github.com/swaywm/swaylock
-[gammastep]: https://gitlab.com/chinstrap/gammastep
-[sway-audio-idle-inhibit]: https://github.com/ErikReider/SwayAudioIdleInhibit
