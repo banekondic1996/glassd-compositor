@@ -1612,6 +1612,7 @@ view_toggle_always_on_top(struct view *view)
 		wlr_scene_node_reparent(&view->scene_tree->node,
 			view->server->view_tree_always_on_top);
 	}
+	ssd_update_geometry(view->ssd);
 }
 
 bool
