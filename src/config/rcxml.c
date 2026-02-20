@@ -115,6 +115,7 @@ parse_window_type(const char *type)
  * close        C           Close
  * shade        S           Shade toggle
  * desk         D           All-desktops toggle (aka omnipresent)
+ * ontop        A           Always-on-top toggle
  */
 static void
 fill_section(const char *content, enum lab_node_type *buttons, int *count,
@@ -147,6 +148,8 @@ fill_section(const char *content, enum lab_node_type *buttons, int *count,
 			type = LAB_NODE_BUTTON_SHADE;
 		} else if (!strcmp(identifier, "desk")) {
 			type = LAB_NODE_BUTTON_OMNIPRESENT;
+		} else if (!strcmp(identifier, "ontop")) {
+			type = LAB_NODE_BUTTON_ALWAYS_ON_TOP;
 		} else {
 			wlr_log(WLR_ERROR, "invalid titleLayout identifier '%s'",
 				identifier);
@@ -1698,14 +1701,14 @@ post_processing(void)
 
 	if (!rc.title_layout_loaded) {
 #if HAVE_LIBSFDO
-		fill_title_layout("icon:iconify,max,close");
+		fill_title_layout("icon:close,iconify,max,ontop");
 #else
 		/*
 		 * 'icon' is replaced with 'menu' in fill_title_layout() when
 		 * libsfdo is not linked, but we also replace it here not to
 		 * show error message with default settings.
 		 */
-		fill_title_layout("menu:iconify,max,close");
+		fill_title_layout("menu:close,iconify,max,ontop");
 #endif
 	}
 

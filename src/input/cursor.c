@@ -37,8 +37,12 @@
 #include "ssd.h"
 #include "view.h"
 #include "xwayland.h"
+#include "labwc-ipc.h"	
 
 #define LAB_CURSOR_SHAPE_V1_VERSION 1
+#define CURSOR_IPC_UPDATE_INTERVAL_MS 16  // ~60fps
+static uint32_t last_cursor_ipc_update_ms = 0;
+
 
 struct constraint {
 	struct seat *seat;
@@ -882,6 +886,13 @@ handle_motion(struct wl_listener *listener, void *data)
 		preprocess_cursor_motion(seat, event->pointer,
 			event->time_msec, event->delta_x, event->delta_y);
 	}
+	// Throttled IPC cursor update
+	 if (server && server->ipc_server && 
+        event->time_msec - last_cursor_ipc_update_ms >= CURSOR_IPC_UPDATE_INTERVAL_MS) {
+        ipc_send_cursor_position(server->ipc_server,
+            seat->cursor->x, seat->cursor->y);
+        last_cursor_ipc_update_ms = event->time_msec;
+    }
 }
 
 static void
@@ -914,6 +925,13 @@ handle_motion_absolute(struct wl_listener *listener, void *data)
 
 	preprocess_cursor_motion(seat, event->pointer,
 		event->time_msec, dx, dy);
+	// Throttled IPC cursor update
+ 	if (seat->server->ipc_server && 
+	    event->time_msec - last_cursor_ipc_update_ms >= CURSOR_IPC_UPDATE_INTERVAL_MS) {
+		ipc_send_cursor_position(seat->server->ipc_server,
+			seat->cursor->x, seat->cursor->y);
+		last_cursor_ipc_update_ms = event->time_msec;
+	}
 }
 
 static void
@@ -1075,6 +1093,7 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 		/* Store cursor context for later action processing */
 		seat_set_pressed(seat, &ctx);
 	}
+	ssd_set_pressed_button(server, ctx.node);
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
 		/*
@@ -1144,6 +1163,7 @@ cursor_process_button_release(struct seat *seat, uint32_t button,
 	const bool notify = !lab_set_contains(&seat->bound_buttons, button);
 
 	seat_reset_pressed(seat);
+	ssd_set_pressed_button(server, NULL);
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
 		/* TODO: take into account overflow of time_msec */

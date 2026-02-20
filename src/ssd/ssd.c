@@ -226,7 +226,8 @@ ssd_update_geometry(struct ssd *ssd)
 	bool state_changed = ssd->state.was_maximized != maximized
 		|| ssd->state.was_shaded != view->shaded
 		|| ssd->state.was_squared != squared
-		|| ssd->state.was_omnipresent != view->visible_on_all_workspaces;
+		|| ssd->state.was_omnipresent != view->visible_on_all_workspaces
+		|| ssd->state.was_always_on_top != view_is_always_on_top(view);
 
 	/*
 	 * (Un)maximization updates titlebar visibility with
@@ -277,6 +278,10 @@ ssd_destroy(struct ssd *ssd)
 			server->hovered_button->node) == view) {
 		server->hovered_button = NULL;
 	}
+	if (server->pressed_button && node_view_from_node(
+			server->pressed_button->node) == view) {
+		server->pressed_button = NULL;
+	}
 
 	/* Destroy subcomponents */
 	ssd_titlebar_destroy(ssd);
@@ -322,6 +327,11 @@ ssd_set_active(struct ssd *ssd, bool active)
 		if (ssd->shadow.subtrees[active_state].tree) {
 			wlr_scene_node_set_enabled(
 				&ssd->shadow.subtrees[active_state].tree->node,
+				active == active_state);
+		}
+		if (ssd->border.subtrees[active_state].overlay) {
+			wlr_scene_node_set_enabled(
+				&ssd->border.subtrees[active_state].overlay->node,
 				active == active_state);
 		}
 	}
